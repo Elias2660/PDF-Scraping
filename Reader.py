@@ -11,6 +11,7 @@ def join_lines(page_list):
     ...
 
 
+
 # creating a pdf reader object
 file_list = os.listdir("docs")
 for file in file_list:
@@ -31,6 +32,7 @@ for file in file_list:
         text_list = [
             text_list[i] for i in range(len(text_list)) if i not in to_be_removed
         ]
+        # also split elements if the contain a B, number then ":", 
         q_list = []
         started = False
         current_q = ""
@@ -39,21 +41,21 @@ for file in file_list:
                 started = True
             elif started and text_list[i].upper() != text_list[i]:
                 current_q += text_list[i] + " "
-            elif (
-                started
-                and text_list[i].strip()[0].isnumeric()
-                and not (text_list[i].replace(" and ", " AND ").replace(" ", ""))
-                .strip()
-                .upper()
-                == (text_list[i].replace(" and ", " AND ").replace(" ", "").strip())
-            ):
-                print("hit")
-                q_list.append(
-                    current_q.replace("'", "")
-                    .replace("\n", " ")
-                    .replace(" AND", " and ").strip()
-                )
-                current_q = text_list[i]
+            # elif (
+            #     started
+            #     and text_list[i].strip()[0].isnumeric()
+            #     and not (text_list[i].replace(" and ", " AND ").replace(" ", ""))
+            #     .strip()
+            #     .upper()
+            #     == (text_list[i].replace(" and ", " AND ").replace(" ", "").strip())
+            # ):
+            #     print("hit")
+            #     q_list.append(
+            #         current_q.replace("'", "")
+            #         .replace("\n", " ")
+            #         .replace(" AND", " and ").strip()
+            #     )
+            #     current_q = text_list[i]
             elif started and (
                 text_list[i].replace(" and ", " AND ").replace(" ", "")
             ).strip().upper() == (
@@ -73,6 +75,8 @@ for file in file_list:
                 )
                 current_q = ""
 
+        # for item in text_list:
+        #     print("NL"+ item)
         for item in q_list:
             print(item)
 
