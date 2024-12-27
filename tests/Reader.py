@@ -41,24 +41,9 @@ for file in file_list:
                 started = True
             elif started and text_list[i].upper() != text_list[i]:
                 current_q += text_list[i] + " "
-            # elif (
-            #     started
-            #     and text_list[i].strip()[0].isnumeric()
-            #     and not (text_list[i].replace(" and ", " AND ").replace(" ", ""))
-            #     .strip()
-            #     .upper()
-            #     == (text_list[i].replace(" and ", " AND ").replace(" ", "").strip())
-            # ):
-            #     print("hit")
-            #     q_list.append(
-            #         current_q.replace("'", "")
-            #         .replace("\n", " ")
-            #         .replace(" AND", " and ").strip()
-            #     )
-            #     current_q = text_list[i]
             elif started and (
                 text_list[i].replace(" and ", " AND ").replace(" ", "")
-            ).strip().upper() == (
+        ).strip().upper() == (
                 text_list[i].replace(" and ", " AND ").replace(" ", "").strip()
             ):
                 q_list.append(
