@@ -107,7 +107,7 @@ for question in questions:
 
         options = [
             a.replace("CC", ",").replace("\n", " ").replace("  ", " ").strip()
-            for a in origional_output.strip().split(", ")
+            for a in origional_output.strip().split(",")
         ]
         if len(options) != len(df.columns):
             print(f"Wrong number of options ({len(options)}), retrying with o1-preview")
@@ -126,7 +126,7 @@ for question in questions:
             revised_response = response.choices[0].message.content
             options = [
                 a.replace("CC", ",").replace("\n", " ").replace("  ", " ").strip()
-                for a in revised_response.strip().split(", ")
+                for a in revised_response.strip().split(",")
             ]
             if len(options) != len(df.columns):
                 print(
