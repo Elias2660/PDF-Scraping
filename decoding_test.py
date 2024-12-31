@@ -2,6 +2,8 @@ import PyPDF2
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+import pandas as pd
+
 
 HBLK = "\033[30m"
 HRED = "\033[31m"
@@ -62,8 +64,6 @@ for file in files:
     questions.append("Bonus MYTHOLOGY")
     questions.append("Bonus LANGUAGE")
 
-    import pandas as pd
-
     rounds = [
         "Preliminary Round 1",
         "Preliminary Round 2",
@@ -86,6 +86,8 @@ for file in files:
                 
                 - for difficulty, use either "Beginner", "Intermediate", or "Advanced", and extract from the name of the file, for example docs/Yale+Certamen+2020+-+Intermediate+Tournament.pdf would be "Intermediate"
                 - for contest name, extract from the name of the contest, for example docs/Yale+Certamen+2020+-+Intermediate+Tournament.pdf would be "Yale Certamen 2020", otherwise get it from the materials in the pdf
+                - for topic: Choose among the following options: 'Daily Life', 'History', 'Literature', 'Mythology', 'Geography', 'Grammar Forms', 'Grammar Usage', 'Grammar Derivatives', 'Grammar Vocab', 'Grammar Listening Comprehension'
+
                 
                 - also try to remove the labels of the questions such as 'B1' or '1'
                 - REPLACE ALL COMMAS IN THE QUESTION SECTIONS, BUT NOT THE COMMAS SEPARATING THE PARTS OF THE QUESTION, with 'CC' in the format of the following so that it would be easier to split the output into a list
@@ -126,13 +128,13 @@ for file in files:
                 ],
             )
 
-            origional_output = original_response.choices[0].message.content
+            original_output = original_response.choices[0].message.content
 
-            if origional_output or origional_output != "None":
-                print(f"{HCYN}Origional Output{reset}: {origional_output}")
+            if original_output or original_output != "None":
+                print(f"{HCYN}Original Output{reset}: {original_output}")
                 options = [
                     a.replace("CC", ",").replace("  ", " ").strip()
-                    for a in origional_output.strip().split(",")
+                    for a in original_output.strip().split(",")
                 ]
 
                 if len(options) != len(df.columns):
@@ -155,10 +157,10 @@ for file in files:
                                 
                                 - if there are more options than correct, then it probably is because they forgot to replace a comma with a 'CC'
                                 
-                                Remember to output the response as reformated from the below as needed to match the format of the examples, REDUCE the number of split parts, which was at {len(options)} which is NOT EQUAL to {len(origional_output.split(','))}
+                                Remember to output the response as reformated from the below as needed to match the format of the examples, REDUCE the number of split parts, which was at {len(options)} which is NOT EQUAL to {len(original_output.split(','))}
                                 
-                                
-                                {origional_output}
+                                This is the original output you have to reformat/revise:
+                                {original_output}
                                 """,
                             },
                         ],
@@ -184,8 +186,9 @@ for file in files:
                                 
                                 {assistant_prompt}
                                                                 
-                                Remember to output the response as reformated from the below as needed to match the format of the examples, REDUCE the number of split parts, which was at {len(options)} which is NOT EQUAL to {len(origional_output.split(','))}
+                                Remember to output the response as reformated from the below as needed to match the format of the examples, REDUCE the number of split parts, which was at {len(options)} which is NOT EQUAL to {len(original_output.split(','))}
                                 
+                                This is the original output you have to reformat/revise:
                                 {revised_response}
                                 """,
                                 },
