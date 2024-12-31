@@ -39,6 +39,10 @@ df = pd.DataFrame(
 incorrect_answers, correct_answers = 0, 0
 
 for file in files:
+
+    # TODO: Try to extract the difficulty level from the file name and text using individual gpt query
+    # TODO: Do the same as above for the contest name
+
     pdf_path = os.path.join("docs", file)
 
     load_dotenv()
@@ -54,7 +58,7 @@ for file in files:
 
         else:
             text += read_pdf.pages[i].extract_text() + "\n"
-
+    text = text.replace(",", "CC")  # replace commas with CC to avoid splitting options
     client = OpenAI(api_key=os.getenv("API_KEY", ""))
 
     context = "System: You are a helpful assistant trying to reformat data, only returning the data requested, not anything else.\n"
@@ -74,6 +78,7 @@ for file in files:
 
     for ROUND in rounds:
         for question in questions:
+
             print()
             print(
                 f"---- Question {HRED}{question}{reset} of Round {HBLU}{ROUND}{reset} of file {HCYN}{pdf_path}{reset} ----"
@@ -84,16 +89,20 @@ for file in files:
 
                 Use your best intution to extract the questions from the data, but given your knowledge try your best.
                 
-                - for difficulty, use either "Beginner", "Intermediate", or "Advanced", and extract from the name of the file, for example docs/Yale+Certamen+2020+-+Intermediate+Tournament.pdf would be "Intermediate"
+                - for difficulty, use either "Novice", "Intermediate", or "Advanced", and extract from the name of the file, for example docs/Yale+Certamen+2020+-+Intermediate+Tournament.pdf would be "Intermediate"
                 - for contest name, extract from the name of the contest, for example docs/Yale+Certamen+2020+-+Intermediate+Tournament.pdf would be "Yale Certamen 2020", otherwise get it from the materials in the pdf
                 - for topic: Choose among the following options: 'Daily Life', 'History', 'Literature', 'Mythology', 'Geography', 'Grammar Forms', 'Grammar Usage', 'Grammar Derivatives', 'Grammar Vocab', 'Grammar Listening Comprehension'
-
+                - The question might not exist (for example, if the question is a bonus question, then the question might not exist). If so, output "None" and nothing else!
                 
                 - also try to remove the labels of the questions such as 'B1' or '1'
                 - REPLACE ALL COMMAS IN THE QUESTION SECTIONS, BUT NOT THE COMMAS SEPARATING THE PARTS OF THE QUESTION, with 'CC' in the format of the following so that it would be easier to split the output into a list
                 - Comma replacement only works within each option, but not between the options, for example, don't put a 'CC' between the question and the answer, only if there is a comma within the question or answer
                 - REMEMBER TO place a comma separating a question and its answers!, don't put unnessary quotes around the answers
                 - Also remember to not output anything besides the formatted info, no extra information is needed 
+                - Do try to add instructions for the question that is included in the pdf, such as "Say in LatinCC" or "What fruit did the Romans callCC"
+                
+                - here is the current dataframe of questions:\n {(df).to_string()}
+                - REMEMBER TO NOT REPEAT QUESTIONS!!!!!DO NOT REPEAT STOP BEING LAZY AND REPEAT QUESTIONS!!!!!
                 
                 Please analyze and output the correct format this question for tossup question {question} for round {ROUND} as a row divided by commas in the following format: Main Question, Main Question Answer, Bonus Question 1, Bonus Question 1 Answer, Bonus Question 2, Bonus Question 2 Answer, Difficulty Level, Topic, Year, Contest Name, Round
                 
@@ -117,20 +126,22 @@ for file in files:
                
                \n"""
 
-            initial_model = "gpt-4o"
+            initial_model = "chatgpt-4o-latest"
             print(f"Performing initial formatting prompt with {initial_model}")
             original_response = client.chat.completions.create(
                 model=initial_model,
                 messages=[
                     {"role": "user", "content": context},
                     {"role": "user", "content": assistant_prompt},
-                    {"role": "user", "content": text.replace("\n", " ")},
+                    {"role": "user", "content": text},
                 ],
             )
 
             original_output = original_response.choices[0].message.content
-
-            if original_output or original_output != "None":
+            if original_output.strip() == "None":
+                print(f"{HRED}No question found{reset}")
+                continue
+            if original_output or original_output.strip() != "None":
                 print(f"{HCYN}Original Output{reset}: {original_output}")
                 options = [
                     a.replace("CC", ",").replace("  ", " ").strip()
@@ -231,6 +242,36 @@ for file in files:
                     print(
                         f"Skipping question {question} due to mismatched column length"
                     )
+                # remember here to cut text from the output, maybe 3 or so lines
+                cut_amount = int (sum([len(a.split(" ")) for a in options]) / 2)
+                how_much_to_cut = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"""
+                         How many additional lines should I delete, starting from the top, given that basically each word is a line, with a baseline of {cut_amount}
+                        
+                         Here is the dataframe of already processed questions:
+                        { df.to_string()}
+                        
+                        Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
+                         
+                        Here is the text below: 
+                        {text}
+                         
+                        Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
+
+                        """,
+                        }
+                    ],
+                )
+                cut_amount += int(how_much_to_cut.choices[0].message.content)
+
+                print(f"Cut down text by {HGRN}{cut_amount}{reset} lines")
+                text = "\n".join(text.split("\n")[cut_amount:])
+                with open("text.txt", "w+") as f:
+                    f.write(text)
                 print(df)
 
         df.to_csv("output.csv", index=False)
