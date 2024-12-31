@@ -132,8 +132,31 @@ for file in files:
                 model=initial_model,
                 messages=[
                     {"role": "user", "content": context},
-                    {"role": "user", "content": assistant_prompt},
+                    {
+                        "role": "user",
+                        "content": f"Try to extract tossup questions and answers (including bonuses), along with difficulty (whether novice, intermediate, or advanced), contest name, {question} of round {ROUND} from following text from pdf path {pdf_path}. If it doesn't exist, return 'None' \n",
+                    },
                     {"role": "user", "content": text},
+                ],
+            )
+
+            if original_response.choices[0].message.content.strip() == "None":
+                print(f"{HRED}No question found{reset}, writing that to file")
+                with open("Incorrect_Questions.txt", "a") as f:
+                    f.write(
+                        f"Question {question} of round {ROUND} from pdf {pdf_path} is not found\n"
+                    )
+                continue
+
+            original_response = client.chat.completions.create(
+                model=initial_model,
+                messages=[
+                    {"role": "user", "content": context},
+                    {"role": "user", "content": assistant_prompt},
+                    {
+                        "role": "user",
+                        "content": f"\nHere are is the stuff that a previous response extracted from the text:\n {original_response.choices[0].message.content}\n",
+                    },
                 ],
             )
 
@@ -243,7 +266,7 @@ for file in files:
                         f"Skipping question {question} due to mismatched column length"
                     )
                 # remember here to cut text from the output, maybe 3 or so lines
-                cut_amount = int (sum([len(a.split(" ")) for a in options]) / 2)
+                cut_amount = int(sum([len(a.split(" ")) for a in options]) / 2)
                 how_much_to_cut = client.chat.completions.create(
                     model="gpt-4o",
                     messages=[
