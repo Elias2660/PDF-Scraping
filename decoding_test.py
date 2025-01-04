@@ -33,6 +33,7 @@ df = pd.DataFrame(
         "Year",
         "Contest",
         "Round",
+        "Question Number",
     ]
 )
 
@@ -47,18 +48,9 @@ for file in files:
 
     load_dotenv()
 
-    open_pdf_file = open(pdf_path, "rb")
-    text = ""
+    with open("W.txt", "r") as f:
+        text = f.read()
 
-    read_pdf = PyPDF2.PdfReader(open_pdf_file)
-    for i in range(len(read_pdf.pages)):
-        if read_pdf.is_encrypted:
-            read_pdf.decrypt("")
-            text += read_pdf.pages[i].extract_text() + "\n"
-
-        else:
-            text += read_pdf.pages[i].extract_text() + "\n"
-    text = text.replace(",", "CC")  # replace commas with CC to avoid splitting options
     client = OpenAI(api_key=os.getenv("API_KEY", ""))
 
     context = "System: You are a helpful assistant trying to reformat data, only returning the data requested, not anything else.\n"
@@ -85,8 +77,6 @@ for file in files:
             )
 
             assistant_prompt = f"""
-
-
                 Use your best intution to extract the questions from the data, but given your knowledge try your best.
                 
                 - for difficulty, use either "Novice", "Intermediate", or "Advanced", and extract from the name of the file, for example docs/Yale+Certamen+2020+-+Intermediate+Tournament.pdf would be "Intermediate"
@@ -104,29 +94,30 @@ for file in files:
                 - here is the current dataframe of questions:\n {(df).to_string()}
                 - REMEMBER TO NOT REPEAT QUESTIONS!!!!!DO NOT REPEAT STOP BEING LAZY AND REPEAT QUESTIONS!!!!!
                 
-                Please analyze and output the correct format this question for tossup question {question} for round {ROUND} as a row divided by commas in the following format: Main Question, Main Question Answer, Bonus Question 1, Bonus Question 1 Answer, Bonus Question 2, Bonus Question 2 Answer, Difficulty Level, Topic, Year, Contest Name, Round
+                Please analyze and output the correct format this question for tossup question {question} for round {ROUND} as a row divided by commas in the following format: Main Question, Main Question Answer, Bonus Question 1, Bonus Question 1 Answer, Bonus Question 2, Bonus Question 2 Answer, Difficulty Level, Topic, Year, Contest Name, Round, Question Number
                 
                 -------
                 
                 Here is a formatted EXAMPLE QUESTION: 
-                From what Latin verb with what meaning are the English words “adroitCC” “incorrigibleCC” and “regiment” derived?, REGŌ (REGERE ) = (TO / I) RULE, From what Latin verb with what meaning is “surrogate” derived?, ROGŌ (ROGĀRE) = (TO / I) ASK, From what Latin verb with what meaning is “risible” derived?, RĪDEŌ (RĪDĒRE) = (TO / I) LAUGH, Grammar Derivatives, YEAR, CONTEST, LEVEL
+            From what Latin verb with what meaning are the English words “adroitCC” “incorrigibleCC” and “regiment” derived?, REGŌ (REGERE ) = (TO / I) RULE, From what Latin verb with what meaning is “surrogate” derived?, ROGŌ (ROGĀRE) = (TO / I) ASK, From what Latin verb with what meaning is “risible” derived?, RĪDEŌ (RĪDĒRE) = (TO / I) LAUGH, Grammar Derivatives, YEAR, CONTEST, LEVEL, QUESTION NUMBER
                 
                 This is also CORRECT:
-                Let's go to AthensCC, EAMUS ATHĒNĀS, Say in LatinCC "If only I had believed youCC", UTINAM TIBI CRĒDIDISSEM, Say in LatinCC "What were we to doCC" , QUID AGERĒMUS / FACERĒMUS, Advanced, Lang Latin, 2013, Yale Invitational, Preliminary Round 1
+                Let's go to AthensCC, EAMUS ATHĒNĀS, Say in LatinCC "If only I had believed youCC", UTINAM TIBI CRĒDIDISSEM, Say in LatinCC "What were we to doCC" , QUID AGERĒMUS / FACERĒMUS, Advanced, Lang Latin, 2013, Yale Invitational, Preliminary Round 1, 1
                 
                 This is INCORRECT because it doesn't split between the questions and answers
-                'What fruit did the Romans call malum punicum? POMEGRANATE', 'What fruit did the Romans call malum persicum? PEACH', 'What fruit did the Romans call cerasus? CHERRY', 'Advanced', 'Relevant Term', '2013', 'Yale Certamen Invitational', 'Round 1'
+                'What fruit did the Romans call malum punicum? POMEGRANATE', 'What fruit did the Romans call malum persicum? PEACH', 'What fruit did the Romans call cerasus? CHERRY', 'Advanced', 'Relevant Term', '2013', 'Yale Certamen Invitational', 'Round 1', '1'
                 
                 This is INCORRECT because it replaces the commas between the formatted list options
-                'Quid Anglicē significat “carcer”CC  PRISON / STARTING GATECC Quid Anglicē significat “cinis”CC ASHES / DEATH / RUINCC Quid Anglicē significat “carīna”CC KEEL / SHIPCC Advanced, Vocabulary, 2013, Yale Certamen Invitational, Preliminary Round 1'
+                'Quid Anglicē significat “carcer”CC  PRISON / STARTING GATECC Quid Anglicē significat “cinis”CC ASHES / DEATH / RUINCC Quid Anglicē significat “carīna”CC KEEL / SHIPCC Advanced, Vocabulary, 2013, Yale Certamen Invitational, Preliminary Round 1', '1'
                 
                 -------
                 
-                this is the format of the output for the question asked for (remember to not replace the commas separating each part of the options for the list): Main Question, Main Question Answer, Bonus Question 1, Bonus Question 1 Answer, Bonus Question 2, Bonus Question 2 Answer, Difficulty Level, Topic, Year, Contest Name, Round
+                this is the format of the output for the question asked for (remember to not replace the commas separating each part of the options for the list): Main Question, Main Question Answer, Bonus Question 1, Bonus Question 1 Answer, Bonus Question 2, Bonus Question 2 Answer, Difficulty Level, Topic, Year, Contest Name, Round, Question Number
+     
                
                \n"""
 
-            initial_model = "chatgpt-4o-latest"
+            initial_model = "gpt-4o"
             print(f"Performing initial formatting prompt with {initial_model}")
             original_response = client.chat.completions.create(
                 model=initial_model,
@@ -134,12 +125,16 @@ for file in files:
                     {"role": "user", "content": context},
                     {
                         "role": "user",
-                        "content": f"Try to extract tossup questions and answers (including bonuses), along with difficulty (whether novice, intermediate, or advanced), contest name, {question} of round {ROUND} from following text from pdf path {pdf_path}. If it doesn't exist, return 'None' \n",
+                        "content": f"""
+                        Try to extract tossup questions and answers (including bonuses), along with difficulty (whether novice, intermediate, or advanced), contest name, {question} of round {ROUND} from following text from pdf path {pdf_path}. If the question doesn't exist, return 'None', but try your best. Remember to find QUESTION {question} or ROUND {ROUND}, and don't try to find or extract any other question.\n 
+                        
+                        Try to find the correct round which is {ROUND}, and it might show up just as "Round 1" or "Round 2" or "Preliminary Round 1" or "Preliminary Round 2" or "Semifinals" or "Semis" or "Finals" 
+
+                        """,
                     },
                     {"role": "user", "content": text},
                 ],
             )
-
             if original_response.choices[0].message.content.strip() == "None":
                 print(f"{HRED}No question found{reset}, writing that to file")
                 with open("Incorrect_Questions.txt", "a") as f:
@@ -252,7 +247,8 @@ for file in files:
 
                 for i in range(len(options)):
                     options[i] = options[i].replace("CC", ",")
-                options[-1] = ROUND
+                options[-2] = ROUND
+                options[-1] = question
                 print(
                     f"Option Length: {HCYN}{len(options)}{reset}, length of df.columns: {HCYN}{len(df.columns)}{reset}"
                 )
@@ -265,39 +261,39 @@ for file in files:
                     print(
                         f"Skipping question {question} due to mismatched column length"
                     )
-                # remember here to cut text from the output, maybe 3 or so lines
-                cut_amount = int(sum([len(a.split(" ")) for a in options]) / 2)
-                how_much_to_cut = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": f"""
-                         How many additional lines should I delete, starting from the top, given that basically each word is a line, with a baseline of {cut_amount}
-                        
-                         Here is the dataframe of already processed questions:
-                        { df.to_string()}
-                        
-                        Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
-                         
-                        Here is the text below: 
-                        {text}
-                         
-                        Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
+                # # remember here to cut text from the output, maybe 3 or so lines
+                # cut_amount = int(sum([len(a.split(" ")) for a in options]) / 2)
+                # how_much_to_cut = client.chat.completions.create(
+                #     model="gpt-4o",
+                #     messages=[
+                #         {
+                #             "role": "user",
+                #             "content": f"""
+                #          How many additional lines should I delete, starting from the top, given that basically each word is a line, with a baseline of {cut_amount}
 
-                        """,
-                        }
-                    ],
-                )
-                cut_amount += int(how_much_to_cut.choices[0].message.content)
+                #          Here is the dataframe of already processed questions:
+                #         { df.to_string()}
 
-                print(f"Cut down text by {HGRN}{cut_amount}{reset} lines")
-                text = "\n".join(text.split("\n")[cut_amount:])
+                #         Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
+
+                #         Here is the text below:
+                #         {text}
+
+                #         Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
+
+                #         """,
+                #         }
+                #     ],
+                # )
+                # cut_amount += int(how_much_to_cut.choices[0].message.content)
+
+                # print(f"Cut down text by {HGRN}{cut_amount}{reset} lines")
+                # text = "\n".join(text.split("\n")[cut_amount:])
                 with open("text.txt", "w+") as f:
                     f.write(text)
                 print(df)
 
-        df.to_csv("output.csv", index=False)
+        df.to_csv(f"{pdf_path.split('/')[-1].split('.')[0]}.csv", index=False)
 
 print(
     f"Incorrect Answers: {HRED}{incorrect_answers}{reset}, Correct Answers: {HGRN}{correct_answers}{reset}"
