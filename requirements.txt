@@ -1,5 +1,5 @@
 annotated-types==0.7.0
-anyio==4.7.0 
+anyio==4.8.0 
 bitarray==3.0.0
 certifi==2024.12.14
 cffi==1.17.1
@@ -12,11 +12,11 @@ httpx==0.28.1
 idna==3.10
 jiter==0.8.2
 numpy==2.2.1
-openai==1.58.1
+openai==1.59.3
 pandas==2.2.3
 pdfminer.six==20231228
-pdfplumber==0.11.4
-pillow==11.0.0
+pdfplumber==0.11.5
+pillow==11.1.0
 pycparser==2.22
 pycryptodome==3.21.0
 pydantic==2.10.4
