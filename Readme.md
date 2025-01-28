@@ -1,5 +1,8 @@
 # Project PDF READER
 
+# for further reading: 
+https://brainhub.eu/library/pdf-insights-aws-textract-openai
+
 This repository explores various approaches to parsing PDFs for text extraction and question generation. It demonstrates attempts at integrating multiple scripts, including GPT-specific workflows, to process and structure data from Certamen PDFs.
 
 ## Overview
