@@ -11,8 +11,8 @@ httpcore==1.0.7
 httpx==0.28.1
 idna==3.10
 jiter==0.8.2
-numpy==2.2.2
-openai==1.61.1
+numpy==2.2.3
+openai==1.63.2
 pandas==2.2.3
 pdfminer.six==20231228
 pdfplumber==0.11.5
