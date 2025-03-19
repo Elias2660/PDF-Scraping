@@ -13,3 +13,7 @@ updates:
       all-dependencies:
         patterns:
           - "*"
+    ignore:
+      # only update on big new versions
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
