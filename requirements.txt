@@ -1,6 +1,6 @@
 annotated-types~=0.7
 anyio~=4.9
-bitarray~=3.2
+bitarray~=3.3
 certifi~=2025.1
 cffi~=1.17
 charset-normalizer~=3.4
