@@ -12,7 +12,7 @@ httpx~=0.28
 idna~=3.10
 jiter~=0.9
 numpy~=2.0
-openai~=1.76
+openai~=1.77
 pandas~=2.2
 pdfminer.six==20231228
 pdfplumber~=0.11
