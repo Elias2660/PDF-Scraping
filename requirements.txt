@@ -18,7 +18,7 @@ pdfminer.six==20231228
 pdfplumber~=0.11
 pillow~=11.2
 pycparser~=2.22
-pycryptodome~=3.22
+pycryptodome~=3.23
 pydantic~=2.11
 pydantic-core~=2.27
 pypdf~=5.5
