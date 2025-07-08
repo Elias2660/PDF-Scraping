@@ -261,34 +261,6 @@ for file in files:
                     print(
                         f"Skipping question {question} due to mismatched column length"
                     )
-                # # remember here to cut text from the output, maybe 3 or so lines
-                # cut_amount = int(sum([len(a.split(" ")) for a in options]) / 2)
-                # how_much_to_cut = client.chat.completions.create(
-                #     model="gpt-4o",
-                #     messages=[
-                #         {
-                #             "role": "user",
-                #             "content": f"""
-                #          How many additional lines should I delete, starting from the top, given that basically each word is a line, with a baseline of {cut_amount}
-
-                #          Here is the dataframe of already processed questions:
-                #         { df.to_string()}
-
-                #         Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
-
-                #         Here is the text below:
-                #         {text}
-
-                #         Return the answer as a number, for example, if you want to delete the first 3 lines, return "3" and NOTHING ELSE.
-
-                #         """,
-                #         }
-                #     ],
-                # )
-                # cut_amount += int(how_much_to_cut.choices[0].message.content)
-
-                # print(f"Cut down text by {HGRN}{cut_amount}{reset} lines")
-                # text = "\n".join(text.split("\n")[cut_amount:])
                 with open("text.txt", "w+") as f:
                     f.write(text)
                 print(df)
