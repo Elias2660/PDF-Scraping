@@ -22,7 +22,7 @@ pycparser==2.22
 pycryptodome==3.23.0
 pydantic==2.11.7
 pydantic_core==2.33.2
-pypdf==5.7.0
+pypdf==5.9.0
 PyPDF2==3.0.1
 pypdfium2==4.30.1
 python-dateutil==2.9.0.post0
